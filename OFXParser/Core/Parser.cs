@@ -25,6 +25,13 @@ namespace OFXParser
 
     public class Parser
     {
+        private static Encoding ofxEncoding = Encoding.UTF8;
+
+        /// <summary>
+        /// Gets or sets the character encoding used to read OFX file
+        /// </summary>
+        public static Encoding OfxEncoding { get => ofxEncoding; set => ofxEncoding = value; }
+
         /// <summary>
         /// This method translate an OFX file to XML tags, independent of the content.
         /// </summary>
@@ -41,31 +48,33 @@ namespace OFXParser
                 throw new FileNotFoundException("OFX source file not found: " + ofxSourceFile);
             }
 
-            StreamReader sr = File.OpenText(ofxSourceFile);
-            while ((linha = sr.ReadLine()) != null)
-            {
-                linha = linha.Trim();
+			using (StreamReader sr = new StreamReader(ofxSourceFile, OfxEncoding))
+			{
+				while ((linha = sr.ReadLine()) != null)
+				{
+					linha = linha.Trim();
 
-                if (linha.StartsWith("</") && linha.EndsWith(">"))
-                {
-                    AddTabs(resultado, nivel, true);
-                    nivel--;
-                    resultado.Append(linha);
-                }
-                else if (linha.StartsWith("<") && linha.EndsWith(">"))
-                {
-                    nivel++;
-                    AddTabs(resultado, nivel, true);
-                    resultado.Append(linha);
-                }
-                else if (linha.StartsWith("<") && !linha.EndsWith(">"))
-                {
-                    AddTabs(resultado, nivel + 1, true);
-                    resultado.Append(linha);
-                    resultado.Append(ReturnFinalTag(linha));
-                }
-            }
-            sr.Close();
+					if (linha.StartsWith("</") && linha.EndsWith(">"))
+					{
+						AddTabs(resultado, nivel, true);
+						nivel--;
+						resultado.Append(linha);
+					}
+					else if (linha.StartsWith("<") && linha.EndsWith(">"))
+					{
+						nivel++;
+						AddTabs(resultado, nivel, true);
+						resultado.Append(linha);
+					}
+					else if (linha.StartsWith("<") && !linha.EndsWith(">"))
+					{
+						AddTabs(resultado, nivel + 1, true);
+						resultado.Append(linha);
+						resultado.Append(ReturnFinalTag(linha));
+					}
+				}
+				sr.Close();
+			}
 
             return resultado;
         }
